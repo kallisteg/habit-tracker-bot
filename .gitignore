@@ -66,4 +66,4 @@ habit_tracking.csv
 Pipfile.lock
 
 # PEP 582
-__pypackages__/ 
+__pypackages__/ config.py
