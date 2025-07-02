@@ -62,13 +62,14 @@ GITHUB_REPO_OWNER=your_github_username
 GITHUB_REPO_NAME=your_repository_name
 GITHUB_TOKEN=your_github_personal_access_token
 GITHUB_FILE_PATH=data/habit_list.csv
+GITHUB_FILE_PATH_TRACKING=data/habit_tracking.csv
 GITHUB_BRANCH=main
 ```
 
 The bot will automatically:
-- Download `habit_list.csv` from GitHub on startup
-- Upload changes to GitHub whenever habits are updated
-- Create the file in GitHub if it doesn't exist
+- Download both CSV files from GitHub on startup
+- Upload changes to GitHub whenever habits or check-ins are updated
+- Create the files in GitHub if they don't exist
 
 ### 4. Run the Bot
 
@@ -155,6 +156,7 @@ python main.py
    - `GITHUB_REPO_NAME`
    - `GITHUB_TOKEN`
    - `GITHUB_FILE_PATH` (optional, default: `data/habit_list.csv`)
+   - `GITHUB_FILE_PATH_TRACKING` (optional, default: `data/habit_tracking.csv`)
    - `GITHUB_BRANCH` (optional, default: `main`)
 3. Deploy and the bot will automatically sync with GitHub
 
