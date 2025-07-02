@@ -4,6 +4,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from config import TELEGRAM_TOKEN
 from handlers import start_command, handle_habit_input, help_command
 from scheduler import start_scheduler, stop_scheduler
+from csv_handler import init_github_sync
 
 if not TELEGRAM_TOKEN:
     raise ValueError("TELEGRAM_TOKEN environment variable is missing.")
@@ -16,6 +17,9 @@ logger = logging.getLogger(__name__)
 
 def main():
     print("🤖 Starting Habit Tracker Bot...")
+    
+    # Initialize GitHub synchronization
+    init_github_sync()
     
     # Create updater and dispatcher
     updater = Updater(token=TELEGRAM_TOKEN, use_context=True)

@@ -8,6 +8,7 @@ A Python-based Telegram bot that helps users track their daily habits with motiv
 - **Motivational Quotes**: Random inspirational quotes with each check-in
 - **Flexible Responses**: Support for emojis (✅/❌), text (yes/no), or numbers (1/0)
 - **Local Storage**: All data stored in CSV files (no cloud dependencies)
+- **GitHub Integration**: Optional GitHub repository sync for Railway deployment
 - **Progress Tracking**: Completion rates and daily summaries
 - **User-Friendly Interface**: Reply keyboards for easy responses
 
@@ -21,6 +22,7 @@ habit-tracker-bot/
 ├── handlers.py              # Telegram logic
 ├── scheduler.py             # Daily check-in pings
 ├── csv_handler.py           # CSV read/write logic
+├── github_synch.py          # GitHub repository sync
 ├── quotes.py                # Motivational quotes
 ├── config.py                # Bot token, constants
 ├── requirements.txt
@@ -43,7 +45,32 @@ The bot token is already configured in `config.py`. If you need to use your own 
 1. Create a bot via [@BotFather](https://t.me/botfather) on Telegram
 2. Replace the token in `config.py`
 
-### 3. Run the Bot
+### 3. GitHub Integration (Optional - for Railway deployment)
+
+For Railway deployment where local file persistence is not reliable, you can enable GitHub synchronization:
+
+#### Set up GitHub Repository:
+1. Create a new GitHub repository
+2. Create a `data/` folder in your repository
+3. Generate a GitHub Personal Access Token with `repo` permissions
+
+#### Environment Variables:
+Set these environment variables in your Railway deployment:
+
+```bash
+GITHUB_REPO_OWNER=your_github_username
+GITHUB_REPO_NAME=your_repository_name
+GITHUB_TOKEN=your_github_personal_access_token
+GITHUB_FILE_PATH=data/habit_list.csv
+GITHUB_BRANCH=main
+```
+
+The bot will automatically:
+- Download `habit_list.csv` from GitHub on startup
+- Upload changes to GitHub whenever habits are updated
+- Create the file in GitHub if it doesn't exist
+
+### 4. Run the Bot
 
 ```bash
 python main.py
@@ -103,6 +130,7 @@ Edit `config.py` to customize:
 - **python-telegram-bot**: Telegram Bot API wrapper
 - **apscheduler**: Task scheduling for daily check-ins
 - **pandas**: Data manipulation (optional, for future analytics)
+- **requests**: HTTP requests for GitHub API integration
 
 ### Architecture
 
@@ -110,6 +138,7 @@ Edit `config.py` to customize:
 - **Async/Await**: Non-blocking I/O operations
 - **State Management**: Tracks user conversation states
 - **Error Handling**: Graceful error handling and logging
+- **GitHub Sync**: Optional repository synchronization for cloud deployments
 
 ## 🚀 Deployment
 
@@ -118,14 +147,23 @@ Edit `config.py` to customize:
 python main.py
 ```
 
+### Railway Deployment
+1. Connect your GitHub repository to Railway
+2. Set environment variables in Railway dashboard:
+   - `TELEGRAM_TOKEN`
+   - `GITHUB_REPO_OWNER`
+   - `GITHUB_REPO_NAME`
+   - `GITHUB_TOKEN`
+   - `GITHUB_FILE_PATH` (optional, default: `data/habit_list.csv`)
+   - `GITHUB_BRANCH` (optional, default: `main`)
+3. Deploy and the bot will automatically sync with GitHub
+
 ### Production Deployment
 1. Set up a server with Python 3.x
 2. Install dependencies: `pip install -r requirements.txt`
-3. Run the bot: `python main.py`
-4. Consider using a process manager like `systemd` or `supervisor`
-
-### GitHub Actions (Optional)
-The bot can be deployed using GitHub Actions for continuous operation.
+3. Configure environment variables
+4. Run the bot: `python main.py`
+5. Consider using a process manager like `systemd` or `supervisor`
 
 ## 🤝 Contributing
 
@@ -147,6 +185,7 @@ If you encounter any issues:
 2. Verify your bot token is correct
 3. Ensure all dependencies are installed
 4. Check that CSV files have proper permissions
+5. For GitHub sync issues, verify your GitHub token has `repo` permissions
 
 ---
 
