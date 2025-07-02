@@ -5,6 +5,8 @@ from config import TELEGRAM_TOKEN
 from handlers import start_command, handle_habit_input, help_command
 from scheduler import start_scheduler, stop_scheduler
 
+if not TELEGRAM_TOKEN:
+    raise ValueError("TELEGRAM_TOKEN environment variable is missing.")
 # Set up logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
