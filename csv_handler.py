@@ -104,10 +104,36 @@ def append_checkin(date, user_id, habit, status):
             writer = csv.writer(file)
             writer.writerow(['date', 'user_id', 'habit', 'status'])
     
-    # Append the check-in
-    with open(HABIT_TRACKING_FILE, 'a', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow([date, user_id, habit, status])
+    # Read existing data to check for duplicates
+    existing_data = []
+    if os.path.exists(HABIT_TRACKING_FILE):
+        with open(HABIT_TRACKING_FILE, 'r', newline='', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            existing_data = list(reader)
+    
+    # Check if this check-in already exists
+    user_id_str = str(user_id)
+    for row in existing_data:
+        if (row['date'] == date and 
+            row['user_id'] == user_id_str and 
+            row['habit'] == habit):
+            # Update existing check-in
+            row['status'] = status
+            break
+    else:
+        # Add new check-in
+        existing_data.append({
+            'date': date,
+            'user_id': user_id_str,
+            'habit': habit,
+            'status': status
+        })
+    
+    # Write back to file
+    with open(HABIT_TRACKING_FILE, 'w', newline='', encoding='utf-8') as file:
+        writer = csv.DictWriter(file, fieldnames=['date', 'user_id', 'habit', 'status'])
+        writer.writeheader()
+        writer.writerows(existing_data)
     
     # Sync to GitHub if enabled
     if github_sync_tracking:
