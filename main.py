@@ -40,7 +40,7 @@ def main():
         print("📱 Send /start to begin tracking your habits!")
         print("⏰ Daily check-ins will be sent at 8:00 AM")
 
-        python import time
+        import time
         time.sleep(10)
         
         # Start the bot
