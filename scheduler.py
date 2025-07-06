@@ -7,7 +7,7 @@ import pytz
 
 def start_scheduler(updater):
     """Start the daily check-in scheduler (sync version)"""
-    scheduler = BackgroundScheduler(timezone=pytz.UTC)
+    scheduler = BackgroundScheduler(timezone=pytz.timezone('America/Toronto'))
     hour, minute = DAILY_CHECKIN_TIME.split(':')
     
     # Create a wrapper function that gets the bot from the updater
