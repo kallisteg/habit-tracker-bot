@@ -2,9 +2,10 @@
 import logging
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from config import TELEGRAM_TOKEN
-from handlers import start_command, handle_habit_input, help_command
-from scheduler import start_scheduler, stop_scheduler
+from handlers import start_command, handle_habit_input, help_command, send_daily_checkin, stats_command, sync_command
 from csv_handler import init_github_sync
+from datetime import time
+import pytz
 
 if not TELEGRAM_TOKEN:
     raise ValueError("TELEGRAM_TOKEN environment variable is missing.")
@@ -28,30 +29,33 @@ def main():
     # Add command handlers
     dp.add_handler(CommandHandler("start", start_command))
     dp.add_handler(CommandHandler("help", help_command))
+    dp.add_handler(CommandHandler("stats", stats_command))
+    dp.add_handler(CommandHandler("sync", sync_command))
     
     # Add message handler for habit input and check-in responses
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_habit_input))
     
-    # Start the scheduler
-    scheduler = start_scheduler(updater)
+    # Schedule daily check-in using JobQueue
+    tz = pytz.timezone("America/Toronto")
+    updater.job_queue.run_daily(
+        send_daily_checkin,
+        time=time(hour=8, minute=0, tzinfo=tz),
+        name="Send daily habit check-in to all users",
+        context=updater.bot,
+    )
     
     try:
         print("🚀 Bot is starting...")
         print("📱 Send /start to begin tracking your habits!")
-        print("⏰ Daily check-ins will be sent at 8:00 AM")
+        print("⏰ Daily check-ins will be sent at 8:00 AM Toronto time")
 
-        import time
-        time.sleep(10)
-        
         # Start the bot
         updater.start_polling()
         updater.idle()
     except KeyboardInterrupt:
         print("\n🛑 Shutting down bot...")
-        stop_scheduler(scheduler)
     except Exception as e:
         print(f"❌ Error: {e}")
-        stop_scheduler(scheduler)
 
 if __name__ == "__main__":
     main() 

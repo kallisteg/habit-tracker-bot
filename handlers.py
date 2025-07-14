@@ -34,8 +34,8 @@ def handle_habit_input(update: Update, context: CallbackContext):
     if not habits:
         update.message.reply_text("Please provide at least one habit. Try again:")
         return
-    habits_str = ', '.join(habits)
-    save_user_habits(user_id, habits_str)
+    
+    save_user_habits(user_id, habits)
     del user_states[user_id]
     confirm_message = f"Perfect! I've saved your {len(habits)} habit(s):\n\n"
     for i, habit in enumerate(habits, 1):
@@ -44,10 +44,15 @@ def handle_habit_input(update: Update, context: CallbackContext):
     confirm_message += "You can reply with ✅/❌ or yes/no for each habit."
     update.message.reply_text(confirm_message)
 
-def send_daily_checkin(context: CallbackContext):
+def send_daily_checkin(context):
+    """Send daily check-in to all users - works with JobQueue context"""
     from csv_handler import get_all_users
     user_ids = get_all_users()
     today = datetime.now().strftime("%Y-%m-%d")
+    
+    # Get bot instance from JobQueue context
+    bot = context.job.context
+    
     for user_id in user_ids:
         if has_checkin_today(user_id, today):
             continue
@@ -69,7 +74,7 @@ def send_daily_checkin(context: CallbackContext):
         ]
         reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
         try:
-            context.bot.send_message(
+            bot.send_message(
                 chat_id=user_id,
                 text=message,
                 reply_markup=reply_markup
@@ -129,6 +134,8 @@ def help_command(update: Update, context: CallbackContext):
 
 /start - Set up your habits
 /help - Show this help message
+/stats - View your habit statistics
+/sync - Sync data with GitHub
 
 📋 How it works:
 1. Use /start to set your habits
@@ -143,4 +150,56 @@ def help_command(update: Update, context: CallbackContext):
 
 📊 Your data is stored locally in CSV files.
 """
-    update.message.reply_text(help_text) 
+    update.message.reply_text(help_text)
+
+def stats_command(update: Update, context: CallbackContext):
+    """Show user's habit statistics"""
+    user_id = update.effective_user.id
+    habits = get_user_habits(user_id)
+    
+    if not habits:
+        update.message.reply_text("You haven't set up your habits yet. Use /start to begin!")
+        return
+    
+    # Calculate statistics
+    from csv_handler import get_user_stats
+    stats = get_user_stats(user_id)
+    
+    message = "📊 Your Habit Statistics:\n\n"
+    
+    for habit in habits:
+        if habit in stats:
+            habit_stats = stats[habit]
+            total_days = habit_stats['total']
+            completed_days = habit_stats['completed']
+            completion_rate = (completed_days / total_days * 100) if total_days > 0 else 0
+            
+            message += f"🎯 {habit}:\n"
+            message += f"   Completed: {completed_days}/{total_days} days\n"
+            message += f"   Success Rate: {completion_rate:.1f}%\n\n"
+        else:
+            message += f"🎯 {habit}:\n"
+            message += f"   No data yet\n\n"
+    
+    update.message.reply_text(message)
+
+def sync_command(update: Update, context: CallbackContext):
+    """Sync data with GitHub repository"""
+    from csv_handler import sync_all_to_github, sync_all_from_github
+    
+    message = "🔄 Syncing data with GitHub...\n\n"
+    
+    # Sync to GitHub
+    if sync_all_to_github():
+        message += "✅ Successfully synced to GitHub\n"
+    else:
+        message += "❌ Failed to sync to GitHub\n"
+    
+    # Sync from GitHub
+    if sync_all_from_github():
+        message += "✅ Successfully synced from GitHub\n"
+    else:
+        message += "❌ Failed to sync from GitHub\n"
+    
+    message += "\n📊 Your data is now synchronized!"
+    update.message.reply_text(message) 
