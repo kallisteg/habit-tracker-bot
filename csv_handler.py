@@ -52,7 +52,7 @@ def save_user_habits(user_id, habits):
     if not os.path.exists(HABIT_LIST_FILE):
         with open(HABIT_LIST_FILE, 'w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-            writer.writerow(['user_id', 'habits'])
+            writer.writerow(['user_id', 'habit'])
     
     # Read existing data
     existing_data = []
@@ -61,20 +61,16 @@ def save_user_habits(user_id, habits):
             reader = csv.DictReader(file)
             existing_data = list(reader)
     
-    # Update or add user habits
-    user_found = False
-    for row in existing_data:
-        if row['user_id'] == str(user_id):
-            row['habits'] = habits
-            user_found = True
-            break
+    # Remove existing habits for this user
+    existing_data = [row for row in existing_data if row['user_id'] != str(user_id)]
     
-    if not user_found:
-        existing_data.append({'user_id': str(user_id), 'habits': habits})
+    # Add new habits for this user
+    for habit in habits:
+        existing_data.append({'user_id': str(user_id), 'habit': habit})
     
     # Write back to file
     with open(HABIT_LIST_FILE, 'w', newline='', encoding='utf-8') as file:
-        writer = csv.DictWriter(file, fieldnames=['user_id', 'habits'])
+        writer = csv.DictWriter(file, fieldnames=['user_id', 'habit'])
         writer.writeheader()
         writer.writerows(existing_data)
     
@@ -87,14 +83,14 @@ def get_user_habits(user_id):
     if not os.path.exists(HABIT_LIST_FILE):
         return []
     
+    habits = []
     with open(HABIT_LIST_FILE, 'r', newline='', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
             if row['user_id'] == str(user_id):
-                habits_str = row['habits']
-                return [habit.strip() for habit in habits_str.split(',') if habit.strip()]
+                habits.append(row['habit'])
     
-    return []
+    return habits
 
 def append_checkin(date, user_id, habit, status):
     """Append a habit check-in to habit_tracking.csv"""
@@ -199,4 +195,26 @@ def sync_all_to_github():
     """Sync both CSV files to GitHub repository."""
     habits_success = sync_habits_to_github()
     tracking_success = sync_tracking_to_github()
-    return habits_success and tracking_success 
+    return habits_success and tracking_success
+
+def get_user_stats(user_id):
+    """Get statistics for a user's habits"""
+    if not os.path.exists(HABIT_TRACKING_FILE):
+        return {}
+    
+    stats = {}
+    with open(HABIT_TRACKING_FILE, 'r', newline='', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            if row['user_id'] == str(user_id):
+                habit = row['habit']
+                status = row['status']
+                
+                if habit not in stats:
+                    stats[habit] = {'total': 0, 'completed': 0}
+                
+                stats[habit]['total'] += 1
+                if status == '✅':
+                    stats[habit]['completed'] += 1
+    
+    return stats 
