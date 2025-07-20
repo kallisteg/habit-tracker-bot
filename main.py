@@ -7,8 +7,8 @@ from csv_handler import init_github_sync
 from datetime import time
 import pytz
 
-if not TELEGRAM_TOKEN:
-    raise ValueError("TELEGRAM_TOKEN environment variable is missing.")
+if not TELEGRAM_TOKEN: #if token is missing
+    raise ValueError("TELEGRAM_TOKEN environment variable is missing.") # raise in python triggers exceptions.
 # Set up logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
