@@ -53,7 +53,7 @@ def send_daily_checkin(context):
     # Get bot instance from JobQueue context
     bot = context.job.context
     
-    for user_id in set(user_ids:) # dedupe here so each chat_id only gets one message
+    for user_id in set(user_ids): # dedupe here so each chat_id only gets one message
         if has_checkin_today(user_id, today):
             continue
         habits = get_user_habits(user_id)
